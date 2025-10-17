@@ -29,7 +29,6 @@ interface LlmCorrectionPayload {
 
 interface LlmEvaluation {
   decision: LlmDecision;
-  reason?: string;
   correction?: LlmCorrectionPayload;
 }
 
@@ -55,7 +54,12 @@ Additional instructions:
 ${extraBlock}
 
 Return ONLY valid JSON with this exact shape:
-{"decision":"IGNORE" | "NO_ISSUES" | "CORRECTION","reason":string (optional),"correction":{"message":string}}
+{
+  "decision":"IGNORE" | "NO_ISSUES" | "CORRECTION",
+  "correction":{
+    "message":string
+    }
+  }
 Omit null fields.
 `.trim();
 }
@@ -132,10 +136,6 @@ function parseLlmEvaluation(raw: string): LlmEvaluation | null {
 
   const evaluation: LlmEvaluation = { decision };
 
-  if (isNonEmptyString(parsed.reason)) {
-    evaluation.reason = parsed.reason.trim();
-  }
-
   if (evaluation.decision === "CORRECTION") {
     if (
       !isPlainObject(parsed.correction) ||
@@ -190,7 +190,6 @@ bot.on("message:text", async (ctx) => {
     if (evaluation.decision === "IGNORE") {
       console.info("LLM chose to ignore message", {
         message_id: ctx.message.message_id,
-        reason: evaluation.reason ?? null,
       });
       // Clear reaction
       await ctx.api.setMessageReaction(ctx.chat.id, ctx.msg!.message_id, []);
