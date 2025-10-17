@@ -1,4 +1,4 @@
-import { Bot } from "grammy";
+import { Bot, type Context, type Filter } from "grammy";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
@@ -109,6 +109,9 @@ function extractJsonPayload(raw: string): string | null {
   return trimmed;
 }
 
+const clearReactions = (ctx: Filter<Context, "message:text">) =>
+  ctx.api.setMessageReaction(ctx.msg.chat.id, ctx.msg.message_id, []);
+
 // Validates and normalises the structured response coming back from the LLM.
 function parseLlmEvaluation(raw: string): LlmEvaluation | null {
   const candidate = extractJsonPayload(raw);
@@ -191,13 +194,14 @@ bot.on("message:text", async (ctx) => {
       console.info("LLM chose to ignore message", {
         message_id: ctx.message.message_id,
       });
-      // Clear reaction
-      await ctx.api.setMessageReaction(ctx.chat.id, ctx.msg!.message_id, []);
+
+      await clearReactions(ctx);
       return;
     }
 
     if (evaluation.decision === "NO_ISSUES") {
-      await ctx.react("👍");
+
+      await clearReactions(ctx);
       return;
     }
 
@@ -206,7 +210,7 @@ bot.on("message:text", async (ctx) => {
         ? { message_id: ctx.message.message_id }
         : undefined;
 
-      await ctx.react("👎");
+      await clearReactions(ctx);
       await ctx.reply(evaluation.correction.message, {
         reply_parameters: replyParameters,
         parse_mode: "Markdown",
