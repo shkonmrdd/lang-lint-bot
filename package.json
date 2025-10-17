@@ -1,9 +1,11 @@
 {
   "scripts": {
-    "dev": "bun --watch src/index.ts",
+    "dev": "bun --watch src/index.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.52",
     "@types/node": "^24.8.1",
+    "ai": "^5.0.76",
     "grammy": "^1.38.3"
   }
 }
