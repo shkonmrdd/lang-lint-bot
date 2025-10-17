@@ -34,7 +34,11 @@ interface LlmEvaluation {
 }
 
 // Prompt used to instruct the model to issue structured moderation decisions.
-const evaluationSystemPrompt = `
+function buildEvaluationSystemPrompt(): string {
+  const extraInstructions = (process.env.LLM_PROMPT ?? "").trim();
+  const extraBlock = extraInstructions ? `\n${extraInstructions}` : "";
+
+  return `
 You review individual Telegram chat messages for correctness and clarity.
 Focus on ${targetLanguage} content when checking for language issues.
 Apply these rules when deciding what to do:
@@ -43,13 +47,23 @@ Apply these rules when deciding what to do:
 - Return decision "CORRECTION" only when you can provide a short, actionable fix for an issue you spot.
 When you provide a correction keep it under 320 characters, actionable, and phrased as a helpful follow-up.
 
-  Always respond in ${nativeLanguage}.
-  Use Markdown formatting for corrections.
-  
+Always respond in ${nativeLanguage}.
+Use Markdown formatting for corrections.
+Address the user by the first name provided to you.
+
+Additional instructions:
+${extraBlock}
+
 Return ONLY valid JSON with this exact shape:
 {"decision":"IGNORE" | "NO_ISSUES" | "CORRECTION","reason":string (optional),"correction":{"message":string}}
 Omit null fields.
 `.trim();
+}
+
+function buildEvaluationUserMessage(userName: string, messageText: string): string {
+  const safeMessage = messageText?.trim() ? messageText : "<empty message>";
+  return `User name: ${userName}\nUser message:\n${safeMessage}`;
+}
 
 const allowedDecisions = new Set<LlmDecision>([
   "IGNORE",
@@ -147,37 +161,20 @@ bot.on("message:text", async (ctx) => {
     text: ctx.message.text,
   });
 
-  const userPayload = JSON.stringify(
-    {
-      message: {
-        id: ctx.message.message_id,
-        text: ctx.message.text,
-        date_iso: new Date(ctx.message.date * 1000).toISOString(),
-        reply_to_message_id: ctx.message.reply_to_message?.message_id ?? null,
-      },
-      chat: {
-        id: ctx.chat.id,
-        type: ctx.chat.type,
-        title: "title" in ctx.chat ? ctx.chat.title : null,
-      },
-      author: {
-        id: ctx.from?.id ?? null,
-        username: ctx.from?.username ?? null,
-        is_bot: ctx.from?.is_bot ?? null,
-        is_premium: ctx.from?.is_premium ?? null,
-        language_code: ctx.from?.language_code ?? null,
-      },
-    },
-    null,
-    2
-  );
+  ctx.react("👀");
+
+  const messageText = ctx.message.text ?? "";
+  const fullName = [ctx.from?.first_name, ctx.from?.last_name]
+    .filter((part): part is string => Boolean(part && part.trim()))
+    .join(" ");
+  const userName = (fullName || ctx.from?.username || "Usuario").trim();
 
   try {
     const { text: rawResponse } = await generateText({
       model: openai(llmModel),
       messages: [
-        { role: "system", content: evaluationSystemPrompt },
-        { role: "user", content: userPayload },
+        { role: "system", content: buildEvaluationSystemPrompt() },
+        { role: "user", content: buildEvaluationUserMessage(userName, messageText) },
       ],
     });
 
@@ -195,6 +192,8 @@ bot.on("message:text", async (ctx) => {
         message_id: ctx.message.message_id,
         reason: evaluation.reason ?? null,
       });
+      // Clear reaction
+      await ctx.api.setMessageReaction(ctx.chat.id, ctx.msg!.message_id, []);
       return;
     }
 
