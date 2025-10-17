@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+  },
+  "dependencies": {
+    "@types/node": "^24.8.1",
+    "grammy": "^1.38.3"
+  }
+}
