@@ -47,7 +47,7 @@ Apply these rules when deciding what to do:
 When you provide a correction keep it under 320 characters, actionable, and phrased as a helpful follow-up.
 
 Always respond in ${nativeLanguage}.
-Use Markdown formatting for corrections.
+Use Markdown formatting for corrections. Make it easy and fun to read. Highlight corrections in bold or monospaced text (\`\`).
 Address the user by the first name provided to you.
 
 Additional instructions:
