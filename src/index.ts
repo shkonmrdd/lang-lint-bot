@@ -4,13 +4,19 @@ if (!process.env.TG_API_KEY) {
   throw new Error("TG_API_KEY is not set in environment variables");
 }
 
-// Create a bot object
-const bot = new Bot(process.env.TG_API_KEY); // <-- place your bot token in this string
+const bot = new Bot(process.env.TG_API_KEY);
 
-// Register listeners to handle messages
-bot.on("message:text", (ctx) => ctx.reply("Echo: " + ctx.message.text));
+bot.on("message:text", async (ctx) => {
+  const shouldApprove = Math.random() < 0.5;
 
-// Start the bot (using long polling)
+  if (shouldApprove) {
+    await ctx.react("👍");
+    return;
+  }
+
+  await ctx.reply("There is a mistake");
+});
+
 bot.start();
 
 console.log("Bot is up and running...");
