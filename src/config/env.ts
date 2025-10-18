@@ -35,15 +35,19 @@ const providerKeyName = rawProvider
 const providerApiKey = providerKeyName ? trimOrUndefined(process.env[providerKeyName]) : undefined;
 
 const env = {
-  telegramApiKey: parsed.TELERGRAM_API_KEY.trim(),
-  targetLanguage: trimOrUndefined(parsed.TARGET_LANG) ?? "English",
-  nativeLanguage: trimOrUndefined(parsed.NATIVE_LANG) ?? "Spanish",
-  markAsReply: asBool(parsed.MARK_AS_REPLY),
-  llmModel: trimOrUndefined(parsed.LLM_MODEL) ?? "gpt-5-mini",
-  llmProvider: rawProvider?.toLowerCase() ?? null,
-  llmPrompt: trimOrUndefined(parsed.LLM_PROMPT) ?? "",
-  llmBaseUrl: trimOrUndefined(parsed.LLM_BASE_URL) ?? null,
-  llmApiKey: providerApiKey ?? trimOrUndefined(parsed.OPENAI_API_KEY) ?? trimOrUndefined(parsed.LLM_API_KEY) ?? null,
+  TELERGRAM_API_KEY: parsed.TELERGRAM_API_KEY.trim(),
+  TARGET_LANG: trimOrUndefined(parsed.TARGET_LANG) ?? "English",
+  NATIVE_LANG: trimOrUndefined(parsed.NATIVE_LANG) ?? "Spanish",
+  MARK_AS_REPLY: asBool(parsed.MARK_AS_REPLY),
+  LLM_MODEL: trimOrUndefined(parsed.LLM_MODEL) ?? "gpt-5-mini",
+  LLM_PROVIDER: rawProvider?.toLowerCase() ?? null,
+  LLM_PROMPT: trimOrUndefined(parsed.LLM_PROMPT) ?? "",
+  LLM_BASE_URL: trimOrUndefined(parsed.LLM_BASE_URL) ?? null,
+  LLM_API_KEY:
+    providerApiKey ??
+    trimOrUndefined(parsed.OPENAI_API_KEY) ??
+    trimOrUndefined(parsed.LLM_API_KEY) ??
+    null,
 };
 
 export type Env = typeof env;

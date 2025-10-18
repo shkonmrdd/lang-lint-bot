@@ -22,7 +22,7 @@ function resolveOpenAICompatibleModel(options: {
     baseURL: options.baseUrl ?? undefined,
     name: options.clientName ?? undefined,
   });
-  const resolvedModel = client(env.llmModel);
+  const resolvedModel = client(env.LLM_MODEL);
   const resolvedBaseUrl = options.baseUrl ?? null;
 
   return {
@@ -33,31 +33,31 @@ function resolveOpenAICompatibleModel(options: {
 }
 
 function resolveLanguageModel(): ModelResolution {
-  if (env.llmBaseUrl) {
+  if (env.LLM_BASE_URL) {
     return resolveOpenAICompatibleModel({
-      apiKey: env.llmApiKey,
-      baseUrl: env.llmBaseUrl,
-      providerLabel: env.llmProvider ?? "openai-compatible",
-      clientName: env.llmProvider,
+      apiKey: env.LLM_API_KEY,
+      baseUrl: env.LLM_BASE_URL,
+      providerLabel: env.LLM_PROVIDER ?? "openai-compatible",
+      clientName: env.LLM_PROVIDER,
     });
   }
 
-  if (!env.llmProvider || env.llmProvider === "openai") {
-    if (!env.llmApiKey) {
+  if (!env.LLM_PROVIDER || env.LLM_PROVIDER === "openai") {
+    if (!env.LLM_API_KEY) {
       throw new Error(
         "No API key found for the configured LLM provider. Set OPENAI_API_KEY, LLM_API_KEY, or an appropriate <PROVIDER>_API_KEY.",
       );
     }
 
     return resolveOpenAICompatibleModel({
-      apiKey: env.llmApiKey,
+      apiKey: env.LLM_API_KEY,
       providerLabel: "openai",
     });
   }
 
   return {
-    model: env.llmModel,
-    providerLabel: env.llmProvider,
+    model: env.LLM_MODEL,
+    providerLabel: env.LLM_PROVIDER,
     baseUrl: "default",
   };
 }
