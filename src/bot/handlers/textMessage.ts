@@ -1,26 +1,22 @@
 import type { Bot, Context } from "grammy";
-import type { createOpenAI } from "@ai-sdk/openai";
+import type { LanguageModel } from "ai";
 import { generateText } from "ai";
 
 import { clearReactions } from "../../utils/messages";
 import { buildEvaluationSystemPrompt, buildEvaluationUserMessage } from "../../llm/prompts";
 import { parseLlmEvaluation } from "../../llm/evaluation";
 
-type OpenAIClient = ReturnType<typeof createOpenAI>;
-
-interface RegisterHandlerParams {
-  bot: Bot<Context>;
-  llmModel: string;
-  openai: OpenAIClient;
-  markAsReply: boolean;
+interface RegisterHandlerOptions {
+  markAsReply?: boolean;
 }
 
-function registerTextMessageHandler({
-  bot,
-  llmModel,
-  openai,
-  markAsReply,
-}: RegisterHandlerParams): void {
+function registerTextMessageHandler(
+  bot: Bot<Context>,
+  model: LanguageModel,
+  options: RegisterHandlerOptions = {},
+): void {
+  const { markAsReply = false } = options;
+
   bot.on("message:text", async (ctx) => {
     console.log("Received message", {
       message_id: ctx.message.message_id,
@@ -37,7 +33,7 @@ function registerTextMessageHandler({
 
     try {
       const { text: rawResponse } = await generateText({
-        model: openai(llmModel),
+        model,
         messages: [
           { role: "system", content: buildEvaluationSystemPrompt() },
           {
