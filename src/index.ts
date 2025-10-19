@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import { Bot } from "grammy";
 
 import { env } from "./config/env";
@@ -7,22 +6,10 @@ import { resolveLanguageModel } from "./llm/modelFactory";
 import { resolveAuth } from "./bot/auth";
 import { registerActivateCommandHandler } from "./bot/handlers/activateCommand";
 
-const auth = resolveAuth({ activationCode: env.BOT_AUTH_CODE });
-
-if (!auth.required) {
-  const warningLines = [
-    "========================================",
-    "WARNING: BOT AUTHENTICATION DISABLED",
-    "The bot is insecure and can be used by anyone.",
-    "Please set BOT_AUTH_CODE in production environments.",
-    "========================================",
-  ];
-
-  console.warn(chalk.yellow(warningLines.join("\n")));
-}
-
-const bot = new Bot(env.TELERGRAM_API_KEY);
 const { model, providerLabel, baseUrl } = resolveLanguageModel();
+
+const auth = resolveAuth({ activationCode: env.BOT_AUTH_CODE });
+const bot = new Bot(env.TELERGRAM_API_KEY);
 
 bot.use(auth.middleware);
 

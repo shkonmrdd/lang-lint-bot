@@ -1,4 +1,5 @@
 import { z } from "zod";
+import chalk from "chalk";
 
 const EnvSchema = z
   .object({
@@ -51,6 +52,18 @@ const env = {
     null,
   BOT_AUTH_CODE: trimOrUndefined(parsed.BOT_AUTH_CODE) ?? null,
 };
+
+if (!env.BOT_AUTH_CODE) {
+  const warningLines = [
+    "========================================",
+    "WARNING: BOT AUTHENTICATION DISABLED",
+    "The bot is insecure and can be used by anyone.",
+    "Please set BOT_AUTH_CODE in production environments.",
+    "========================================",
+  ];
+
+  console.warn(chalk.yellow(warningLines.join("\n")));
+}
 
 export type Env = typeof env;
 export { env };
