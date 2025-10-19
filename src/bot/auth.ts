@@ -1,73 +1,60 @@
 import type { Context, MiddlewareFn } from "grammy";
 
-export type ChatType = "chat" | "group" | "channel";
-
-interface MinimalChat {
-  id: number;
-  type?: string;
-}
-
-const allowedRegistry: Record<ChatType, Set<number>> = {
-  chat: new Set<number>(),
-  group: new Set<number>(),
-  channel: new Set<number>(),
-};
-
-const resolveChatType = (chat: MinimalChat): ChatType => {
-  switch (chat.type) {
-    case "group":
-    case "supergroup":
-      return "group";
-    case "channel":
-      return "channel";
-    default:
-      return "chat";
-  }
-};
-
-const addAuthorizedChat = (chat: MinimalChat): { alreadyAuthorized: boolean; chatType: ChatType } => {
-  const chatType = resolveChatType(chat);
-  const registry = allowedRegistry[chatType];
-
-  const alreadyAuthorized = registry.has(chat.id);
-  if (!alreadyAuthorized) {
-    registry.add(chat.id);
-  }
-
-  return { alreadyAuthorized, chatType };
-};
-
-const isChatAuthorized = (chat: MinimalChat | null | undefined): boolean => {
-  if (!chat || typeof chat.id !== "number") {
-    return false;
-  }
-
-  const chatType = resolveChatType(chat);
-  return allowedRegistry[chatType].has(chat.id);
-};
-
-const getAuthorizationSnapshot = (): Record<ChatType, number[]> => ({
-  chat: Array.from(allowedRegistry.chat),
-  group: Array.from(allowedRegistry.group),
-  channel: Array.from(allowedRegistry.channel),
-});
+import type { AuthStorage, AuthorizeResult, AuthorizationSnapshot } from "../storage";
+import { resolveChatType, type MinimalChat } from "./chat";
 
 interface ResolveAuthOptions {
   activationCode: string | null;
+  storage: AuthStorage;
 }
 
-interface ResolvedAuth {
+export interface ResolvedAuth {
   activationCode: string | null;
   required: boolean;
   middleware: MiddlewareFn<Context>;
-  authorizeChat: typeof addAuthorizedChat;
-  isAuthorized: typeof isChatAuthorized;
-  getSnapshot: typeof getAuthorizationSnapshot;
+  authorize: (chat: MinimalChat) => Promise<AuthorizeResult>;
+  isAuthorized: (chat: MinimalChat | null | undefined) => Promise<boolean>;
+  snapshot: () => Promise<AuthorizationSnapshot>;
+  storage: AuthStorage;
 }
+
+const toMinimalChat = (chat: MinimalChat | null | undefined): MinimalChat | null => {
+  if (!chat || typeof chat.id !== "number") {
+    return null;
+  }
+
+  return {
+    id: chat.id,
+    type: chat.type,
+  };
+};
 
 const resolveAuth = (options: ResolveAuthOptions): ResolvedAuth => {
   const activationCode = options.activationCode ?? null;
   const required = Boolean(activationCode);
+  const { storage } = options;
+
+  const authorize: ResolvedAuth["authorize"] = async (chat) => {
+    const normalized = toMinimalChat(chat);
+    if (!normalized) {
+      throw new Error("Cannot authorize chat without a numeric chat id.");
+    }
+
+    return storage.authorize(normalized);
+  };
+
+  const isAuthorized: ResolvedAuth["isAuthorized"] = async (chat) => {
+    const normalized = toMinimalChat(chat);
+    if (!normalized) {
+      return false;
+    }
+
+    return storage.isAuthorized(normalized);
+  };
+
+  const snapshot: ResolvedAuth["snapshot"] = async () => {
+    return storage.snapshot();
+  };
 
   const middleware: MiddlewareFn<Context> = async (ctx, next) => {
     if (!required) {
@@ -80,38 +67,38 @@ const resolveAuth = (options: ResolveAuthOptions): ResolvedAuth => {
       return;
     }
 
-    const chat = ctx.chat ?? undefined;
-    if (!chat) {
+    const normalizedChat = toMinimalChat(ctx.chat ?? undefined);
+    if (!normalizedChat) {
       await next();
       return;
     }
 
-    if (isChatAuthorized(chat)) {
+    const authorized = await isAuthorized(normalizedChat);
+    if (authorized) {
       await next();
       return;
     }
 
+    const chatType = resolveChatType(normalizedChat);
     console.warn("Blocking message from unauthorized chat", {
-      chat_id: chat.id,
-      chat_type: chat.type,
+      chat_id: normalizedChat.id,
+      chat_type: chatType,
     });
 
     if (typeof ctx.reply === "function") {
       await ctx.reply("🔐 This bot is locked. Ask an admin to run /activate <code>.");
     }
-
-    return;
   };
 
   return {
     activationCode,
     required,
     middleware,
-    authorizeChat: addAuthorizedChat,
-    isAuthorized: isChatAuthorized,
-    getSnapshot: getAuthorizationSnapshot,
+    authorize,
+    isAuthorized,
+    snapshot,
+    storage,
   };
 };
 
-export { addAuthorizedChat, getAuthorizationSnapshot, isChatAuthorized, resolveAuth };
-export type { ResolvedAuth };
+export { resolveAuth };
