@@ -12,6 +12,7 @@ const bootstrap = async () => {
 
   const authStorage = await resolveAuthStorage({
     url: env.DATABASE_URL,
+    provider: env.DATABASE_PROVIDER,
   });
 
   const auth = resolveAuth({
