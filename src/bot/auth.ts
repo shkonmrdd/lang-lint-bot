@@ -86,7 +86,7 @@ const resolveAuth = (options: ResolveAuthOptions): ResolvedAuth => {
     });
 
     if (typeof ctx.reply === "function") {
-      await ctx.reply("🔐 This bot is locked. Ask an admin to run /activate <code>.");
+      await ctx.reply("🔐 This bot requires authorization. Run /activate <your code>.");
     }
   };
 
