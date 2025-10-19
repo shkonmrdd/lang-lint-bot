@@ -1,5 +1,5 @@
-# Lang Lint Bot
-Telegram bot for language learners that reviews every incoming message, highlights grammar issues, and suggests corrections using a configurable LLM. The bot can store authorized chats either in memory or via TypeORM, so you can run it locally for experiments and later plug in a real database. Out of the box it ships with PostgreSQL (`pg`) and SQLite (`sqlite3`) adapters through TypeORM.
+# Lang Lint Bot - Grammar Checker for Telegram
+Get instant AI-powered grammar feedback while you practice any language in Telegram. The bot reviews every message you send while chatting, catches slips, and hands back polished alternatives. Under the hood it leans on a configurable LLM so you can tune tone, target language, and feedback depth to match how you want to learn. Authorized chat data can stay in memory for quick sessions or move to PostgreSQL and SQLite via TypeORM when you need persistence.
 
 <p align="center">
   <img src="docs/assets/logo.png" alt="Lang Lint Bot Logo" width="200">
