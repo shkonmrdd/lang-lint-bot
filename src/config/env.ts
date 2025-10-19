@@ -12,6 +12,7 @@ const EnvSchema = z
     LLM_BASE_URL: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
     LLM_API_KEY: z.string().optional(),
+    BOT_AUTH_CODE: z.string().optional(),
   })
   .loose();
 
@@ -48,6 +49,7 @@ const env = {
     trimOrUndefined(parsed.OPENAI_API_KEY) ??
     trimOrUndefined(parsed.LLM_API_KEY) ??
     null,
+  BOT_AUTH_CODE: trimOrUndefined(parsed.BOT_AUTH_CODE) ?? null,
 };
 
 export type Env = typeof env;

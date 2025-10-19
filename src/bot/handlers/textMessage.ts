@@ -8,6 +8,10 @@ import { parseLlmEvaluation } from "../../llm/evaluation";
 
 interface RegisterHandlerOptions {
   markAsReply?: boolean;
+  auth?: {
+    required: boolean;
+    isAuthorized: (chat: { id: number; type?: string } | null | undefined) => boolean;
+  };
 }
 
 function registerTextMessageHandler(
@@ -15,13 +19,28 @@ function registerTextMessageHandler(
   model: LanguageModel,
   options: RegisterHandlerOptions = {},
 ): void {
-  const { markAsReply = false } = options;
+  const { markAsReply = false, auth } = options;
 
   bot.on("message:text", async (ctx) => {
     console.log("Received message", {
       message_id: ctx.message.message_id,
       text: ctx.message.text,
     });
+
+    const authRequired = auth?.required ?? false;
+    const authorized =
+      !authRequired || (auth?.isAuthorized ? auth.isAuthorized(ctx.chat ?? undefined) : true);
+
+    if (!authorized) {
+      console.warn("Blocking message from unauthorized chat", {
+        chat_id: ctx.chat?.id,
+        chat_type: ctx.chat?.type,
+        message_id: ctx.message.message_id,
+      });
+
+      await ctx.reply("🔐 This bot is locked. Ask an admin to run /activate <code>.");
+      return;
+    }
 
     ctx.react("👀");
 
