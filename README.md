@@ -1,10 +1,9 @@
 # Lang Lint Bot
+Telegram bot for language learners that reviews every incoming message, highlights grammar issues, and suggests corrections using a configurable LLM. The bot can store authorized chats either in memory or via TypeORM, so you can run it locally for experiments and later plug in a real database. Out of the box it ships with PostgreSQL (`pg`) and SQLite (`sqlite3`) adapters through TypeORM.
 
 <p align="center">
   <img src="docs/assets/logo.png" alt="Lang Lint Bot Logo" width="200">
 </p>
-
-Telegram bot for language learners that reviews every incoming message, highlights grammar issues, and suggests corrections using a configurable LLM. The bot can store authorized chats either in memory or via TypeORM, so you can run it locally for experiments and later plug in a real database. Out of the box it ships with PostgreSQL (`pg`) and SQLite (`sqlite3`) adapters through TypeORM.
 
 ## Features
 - Highlights grammatical mistakes and offers corrected versions of user messages.
