@@ -1,16 +1,13 @@
 import type { Bot, Context } from "grammy";
-import type { ChatType, ResolvedAuth } from "../auth";
+import type { ResolvedAuth } from "../auth";
 
-type ActivateCommandAuth = Pick<
-  ResolvedAuth,
-  "activationCode" | "authorizeChat"
->;
+type ActivateCommandAuth = Pick<ResolvedAuth, "activationCode" | "authorize">;
 
 function registerActivateCommandHandler(
   bot: Bot<Context>,
   auth: ActivateCommandAuth,
 ): void {
-  const { activationCode, authorizeChat } = auth;
+  const { activationCode, authorize } = auth;
 
   bot.command("activate", async (ctx) => {
     const code = (ctx.match ?? "").trim();
@@ -31,7 +28,7 @@ function registerActivateCommandHandler(
       return ctx.reply("Cannot read chat id here.");
     }
 
-    const { alreadyAuthorized, chatType } = authorizeChat({
+    const { alreadyAuthorized, chatType } = await authorize({
       id: chatId,
       type: ctx.chat?.type,
     });

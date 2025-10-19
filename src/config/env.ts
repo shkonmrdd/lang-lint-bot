@@ -14,6 +14,7 @@ const EnvSchema = z
     OPENAI_API_KEY: z.string().optional(),
     LLM_API_KEY: z.string().optional(),
     BOT_AUTH_CODE: z.string().optional(),
+    DATABASE_URL: z.string().optional(),
   })
   .loose();
 
@@ -51,6 +52,7 @@ const env = {
     trimOrUndefined(parsed.LLM_API_KEY) ??
     null,
   BOT_AUTH_CODE: trimOrUndefined(parsed.BOT_AUTH_CODE) ?? null,
+  DATABASE_URL: trimOrUndefined(parsed.DATABASE_URL) ?? null,
 };
 
 if (!env.BOT_AUTH_CODE) {
