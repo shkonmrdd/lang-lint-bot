@@ -1,3 +1,5 @@
+import type { Context, MiddlewareFn } from "grammy";
+
 export type ChatType = "chat" | "group" | "channel";
 
 interface MinimalChat {
@@ -50,4 +52,66 @@ const getAuthorizationSnapshot = (): Record<ChatType, number[]> => ({
   channel: Array.from(allowedRegistry.channel),
 });
 
-export { addAuthorizedChat, getAuthorizationSnapshot, isChatAuthorized };
+interface ResolveAuthOptions {
+  activationCode: string | null;
+}
+
+interface ResolvedAuth {
+  activationCode: string | null;
+  required: boolean;
+  middleware: MiddlewareFn<Context>;
+  authorizeChat: typeof addAuthorizedChat;
+  isAuthorized: typeof isChatAuthorized;
+  getSnapshot: typeof getAuthorizationSnapshot;
+}
+
+const resolveAuth = (options: ResolveAuthOptions): ResolvedAuth => {
+  const activationCode = options.activationCode ?? null;
+  const required = Boolean(activationCode);
+
+  const middleware: MiddlewareFn<Context> = async (ctx, next) => {
+    if (!required) {
+      await next();
+      return;
+    }
+
+    if (ctx.hasCommand?.("activate")) {
+      await next();
+      return;
+    }
+
+    const chat = ctx.chat ?? undefined;
+    if (!chat) {
+      await next();
+      return;
+    }
+
+    if (isChatAuthorized(chat)) {
+      await next();
+      return;
+    }
+
+    console.warn("Blocking message from unauthorized chat", {
+      chat_id: chat.id,
+      chat_type: chat.type,
+    });
+
+    if (typeof ctx.reply === "function") {
+      await ctx.reply("🔐 This bot is locked. Ask an admin to run /activate <code>.");
+    }
+
+    return;
+  };
+
+  return {
+    activationCode,
+    required,
+    middleware,
+    authorizeChat: addAuthorizedChat,
+    isAuthorized: isChatAuthorized,
+    getSnapshot: getAuthorizationSnapshot,
+  };
+};
+
+export { addAuthorizedChat, getAuthorizationSnapshot, isChatAuthorized, resolveAuth };
+export type { ResolvedAuth };

@@ -4,13 +4,12 @@ import { Bot } from "grammy";
 import { env } from "./config/env";
 import { registerTextMessageHandler } from "./bot/handlers/textMessage";
 import { resolveLanguageModel } from "./llm/modelFactory";
-import { addAuthorizedChat, isChatAuthorized } from "./bot/auth";
+import { resolveAuth } from "./bot/auth";
 import { registerActivateCommandHandler } from "./bot/handlers/activateCommand";
 
-const activationCode = env.BOT_AUTH_CODE;
-const authRequired = Boolean(activationCode);
+const auth = resolveAuth({ activationCode: env.BOT_AUTH_CODE });
 
-if (!authRequired) {
+if (!auth.required) {
   const warningLines = [
     "========================================",
     "WARNING: BOT AUTHENTICATION DISABLED",
@@ -25,17 +24,15 @@ if (!authRequired) {
 const bot = new Bot(env.TELERGRAM_API_KEY);
 const { model, providerLabel, baseUrl } = resolveLanguageModel();
 
+bot.use(auth.middleware);
+
 registerActivateCommandHandler(bot, {
-  activationCode,
-  authorizeChat: addAuthorizedChat,
+  activationCode: auth.activationCode,
+  authorizeChat: auth.authorizeChat,
 });
 
 const options = {
   markAsReply: env.MARK_AS_REPLY,
-  auth: {
-    required: authRequired,
-    isAuthorized: isChatAuthorized,
-  },
 };
 registerTextMessageHandler(bot, model, options);
 
