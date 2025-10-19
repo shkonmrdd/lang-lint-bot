@@ -69,11 +69,19 @@ const normalizeFileDatabase = (target: string) => {
     return target;
   }
 
-  try {
-    return fileURLToPath(new URL(target));
-  } catch {
-    return target.replace(/^file:(\/\/)?/, "");
+  const withoutScheme = target.slice("file:".length);
+  const isWindowsDrivePath = /^[a-zA-Z]:/.test(withoutScheme);
+  const isAbsolute = withoutScheme.startsWith("//") || withoutScheme.startsWith("/") || isWindowsDrivePath;
+
+  if (isAbsolute) {
+    try {
+      return fileURLToPath(new URL(target));
+    } catch {
+      return withoutScheme.replace(/^\/\/?/, isWindowsDrivePath ? "" : "/");
+    }
   }
+
+  return withoutScheme;
 };
 
 const buildDataSourceOptions = ({
