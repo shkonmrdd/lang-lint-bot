@@ -1,4 +1,4 @@
-type ChatType = "chat" | "group" | "channel";
+export type ChatType = "chat" | "group" | "channel";
 
 interface MinimalChat {
   id: number;
