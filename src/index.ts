@@ -26,15 +26,10 @@ const { model, providerLabel, baseUrl } = resolveLanguageModel();
 
 bot.use(auth.middleware);
 
-registerActivateCommandHandler(bot, {
-  activationCode: auth.activationCode,
-  authorizeChat: auth.authorizeChat,
-});
-
-const options = {
+registerActivateCommandHandler(bot, auth);
+registerTextMessageHandler(bot, model, {
   markAsReply: env.MARK_AS_REPLY,
-};
-registerTextMessageHandler(bot, model, options);
+});
 
 bot.start();
 

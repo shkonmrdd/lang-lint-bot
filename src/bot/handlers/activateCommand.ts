@@ -1,19 +1,16 @@
 import type { Bot, Context } from "grammy";
-import type { ChatType } from "../auth";
+import type { ChatType, ResolvedAuth } from "../auth";
 
-interface ActivateCommandOptions {
-  activationCode: string | null;
-  authorizeChat: (chat: { id: number; type?: string }) => {
-    alreadyAuthorized: boolean;
-    chatType: ChatType;
-  };
-}
+type ActivateCommandAuth = Pick<
+  ResolvedAuth,
+  "activationCode" | "authorizeChat"
+>;
 
 function registerActivateCommandHandler(
   bot: Bot<Context>,
-  options: ActivateCommandOptions,
+  auth: ActivateCommandAuth,
 ): void {
-  const { activationCode, authorizeChat } = options;
+  const { activationCode, authorizeChat } = auth;
 
   bot.command("activate", async (ctx) => {
     const code = (ctx.match ?? "").trim();
@@ -53,5 +50,5 @@ function registerActivateCommandHandler(
   });
 }
 
-export type { ActivateCommandOptions };
+export type { ActivateCommandAuth };
 export { registerActivateCommandHandler };
