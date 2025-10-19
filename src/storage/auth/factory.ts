@@ -17,27 +17,23 @@ export interface AuthStorageFactoryOptions {
   synchronize?: TypeOrmAuthStorageOptions["synchronize"];
 }
 
-const resolveDriver = (options: AuthStorageFactoryOptions): AuthStorageDriver => {
-  if (options.driver) {
-    return options.driver;
+const DEFAULT_TYPEORM_PROVIDER: TypeOrmDatabaseProvider = "postgres";
+
+const resolveDriver = ({ driver, url }: AuthStorageFactoryOptions): AuthStorageDriver =>
+  driver ?? (url ? "typeorm" : "memory");
+
+const resolveProvider = (candidate?: AuthStorageFactoryOptions["provider"]): TypeOrmDatabaseProvider => {
+  if (candidate == null || candidate === "") {
+    return DEFAULT_TYPEORM_PROVIDER;
   }
 
-  return options.url ? "typeorm" : "memory";
-};
-
-const resolveProvider = (provider?: AuthStorageFactoryOptions["provider"]): TypeOrmDatabaseProvider => {
-  if (provider) {
-    const normalized = provider.toString().toLowerCase() as TypeOrmDatabaseProvider;
-    if (SUPPORTED_TYPEORM_DATABASE_PROVIDERS.includes(normalized)) {
-      return normalized;
-    }
-
-    console.warn(
-      `Unsupported database provider "${provider}". Falling back to PostgreSQL.`,
-    );
+  const normalized = candidate.toString().toLowerCase() as TypeOrmDatabaseProvider;
+  if (SUPPORTED_TYPEORM_DATABASE_PROVIDERS.includes(normalized)) {
+    return normalized;
   }
 
-  return "postgres";
+  console.warn(`Unsupported database provider "${candidate}". Falling back to PostgreSQL.`);
+  return DEFAULT_TYPEORM_PROVIDER;
 };
 
 export const resolveAuthStorage = async (
@@ -45,36 +41,38 @@ export const resolveAuthStorage = async (
 ): Promise<AuthStorage> => {
   const driver = resolveDriver(options);
 
-  if (driver === "typeorm") {
-    if (!options.url) {
-      throw new Error("TypeORM auth storage requires a connection URL.");
-    }
-
-    const provider = resolveProvider(options.provider);
-
-    try {
-      const storage = await TypeOrmAuthStorage.initialize({
-        provider,
-        url: options.url,
-        logging: options.logging,
-        synchronize: options.synchronize,
-      });
-      console.log(`Auth storage: ${provider} via TypeORM.`);
-      return storage;
-    } catch (error) {
-      console.error(`Failed to initialize ${provider} storage. Falling back to in-memory storage.`);
-      console.error(error);
-      console.log("Auth storage: in-memory fallback.");
-      return new InMemoryAuthStorage();
-    }
+  if (driver !== "typeorm") {
+    console.log(
+      options.url
+        ? "Auth storage: in-memory (driver forced)."
+        : "Auth storage: in-memory (no DATABASE_URL provided).",
+    );
+    return new InMemoryAuthStorage();
   }
 
-  if (options.url) {
-    console.log("Auth storage: in-memory (driver forced).");
-  } else {
-    console.log("Auth storage: in-memory (no DATABASE_URL provided).");
+  const { url, logging, synchronize } = options;
+
+  if (!url) {
+    throw new Error("TypeORM auth storage requires a connection URL.");
   }
-  return new InMemoryAuthStorage();
+
+  const provider = resolveProvider(options.provider);
+
+  try {
+    const storage = await TypeOrmAuthStorage.initialize({
+      provider,
+      url,
+      logging,
+      synchronize,
+    });
+    console.log(`Auth storage: ${provider} via TypeORM.`);
+    return storage;
+  } catch (error) {
+    console.error(`Failed to initialize ${provider} storage. Falling back to in-memory storage.`);
+    console.error(error);
+    console.log("Auth storage: in-memory fallback.");
+    return new InMemoryAuthStorage();
+  }
 };
 
 export { InMemoryAuthStorage, TypeOrmAuthStorage };

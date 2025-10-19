@@ -1,6 +1,12 @@
 import { fileURLToPath } from "node:url";
 
-import { DataSource, EntitySchema, type DataSourceOptions, type ValueTransformer } from "typeorm";
+import {
+  DataSource,
+  EntitySchema,
+  type DataSourceOptions,
+  type Repository,
+  type ValueTransformer,
+} from "typeorm";
 
 import { resolveChatType, type ChatType, type MinimalChat } from "../../bot/chat";
 import type { AuthStorage, AuthorizeResult, AuthorizationSnapshot } from "../auth/types";
@@ -39,7 +45,7 @@ const AuthorizedChatSchema = new EntitySchema<AuthorizedChatEntity>({
   },
 });
 
-const SUPPORTED_PROVIDER_VALUES = [
+export const SUPPORTED_TYPEORM_DATABASE_PROVIDERS = [
   "better-sqlite3",
   "cockroachdb",
   "mariadb",
@@ -47,13 +53,9 @@ const SUPPORTED_PROVIDER_VALUES = [
   "mysql",
   "postgres",
   "sqlite",
-] as const;
+] as const satisfies readonly DataSourceOptions["type"][];
 
-type SupportedDatabaseType = Extract<DataSourceOptions["type"], (typeof SUPPORTED_PROVIDER_VALUES)[number]>;
-
-export type TypeOrmDatabaseProvider = SupportedDatabaseType;
-export const SUPPORTED_TYPEORM_DATABASE_PROVIDERS: readonly TypeOrmDatabaseProvider[] =
-  SUPPORTED_PROVIDER_VALUES;
+export type TypeOrmDatabaseProvider = (typeof SUPPORTED_TYPEORM_DATABASE_PROVIDERS)[number];
 
 export interface TypeOrmAuthStorageOptions {
   provider: TypeOrmDatabaseProvider;
@@ -74,8 +76,12 @@ const normalizeFileDatabase = (target: string) => {
   }
 };
 
-const buildDataSourceOptions = (options: TypeOrmAuthStorageOptions): DataSourceOptions => {
-  const { provider, url, logging, synchronize } = options;
+const buildDataSourceOptions = ({
+  provider,
+  url,
+  logging,
+  synchronize,
+}: TypeOrmAuthStorageOptions): DataSourceOptions => {
   const common = {
     logging: logging ?? false,
     entities: [AuthorizedChatSchema],
@@ -84,16 +90,16 @@ const buildDataSourceOptions = (options: TypeOrmAuthStorageOptions): DataSourceO
 
   if (provider === "sqlite" || provider === "better-sqlite3") {
     return {
+      ...common,
       type: provider,
       database: normalizeFileDatabase(url),
-      ...common,
     } as DataSourceOptions;
   }
 
   return {
+    ...common,
     type: provider,
     url,
-    ...common,
   } as DataSourceOptions;
 };
 
@@ -106,7 +112,7 @@ export class TypeOrmAuthStorage implements AuthStorage {
 
   private constructor(private readonly dataSource: DataSource) {}
 
-  private get repository() {
+  private get repository(): Repository<AuthorizedChatEntity> {
     return this.dataSource.getRepository(AuthorizedChatSchema);
   }
 
@@ -114,16 +120,14 @@ export class TypeOrmAuthStorage implements AuthStorage {
     const chatType = resolveChatType(chat);
     const repository = this.repository;
 
-    const existing = await repository.findOne({
-      where: { chatId: chat.id, chatType },
-    });
+    const record = { chatId: chat.id, chatType };
+    const alreadyAuthorized = await repository.exist({ where: record });
 
-    if (existing) {
-      return { alreadyAuthorized: true, chatType };
+    if (!alreadyAuthorized) {
+      await repository.insert(record);
     }
 
-    await repository.insert({ chatId: chat.id, chatType });
-    return { alreadyAuthorized: false, chatType };
+    return { alreadyAuthorized, chatType };
   }
 
   async isAuthorized(chat: MinimalChat) {
