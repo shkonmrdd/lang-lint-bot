@@ -1,4 +1,4 @@
-type LlmDecision = "IGNORE" | "NO_ISSUES" | "CORRECTION";
+type LlmDecision = "NO_ISSUES" | "CORRECTION";
 
 interface LlmCorrectionPayload {
   message: string;
@@ -10,7 +10,6 @@ interface LlmEvaluation {
 }
 
 const allowedDecisions = new Set<LlmDecision>([
-  "IGNORE",
   "NO_ISSUES",
   "CORRECTION",
 ]);

@@ -52,15 +52,6 @@ function registerTextMessageHandler(
         return;
       }
 
-      if (evaluation.decision === "IGNORE") {
-        console.info("LLM chose to ignore message", {
-          message_id: ctx.message.message_id,
-        });
-
-        await clearReactions(ctx);
-        return;
-      }
-
       if (evaluation.decision === "NO_ISSUES") {
         await clearReactions(ctx);
         return;
