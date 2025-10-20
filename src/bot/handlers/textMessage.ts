@@ -63,7 +63,7 @@ function registerTextMessageHandler(
           : undefined;
 
         await clearReactions(ctx);
-        await ctx.reply(evaluation.correction.message, {
+        await ctx.reply(evaluation.correction, {
           reply_parameters: replyParameters,
           parse_mode: "Markdown",
         });

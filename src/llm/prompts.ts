@@ -12,8 +12,7 @@ Apply these rules when deciding what to do:
 - Return decision "CORRECTION" when you spot grammatical issues. Fix objective errors (spelling, grammar, essential punctuation, clear syntax faults). Keep edits minimal and preserve the user’s voice. Provide short, actionable fix for an issue you spot.
 When you provide a correction keep it actionable, and phrased as a helpful follow-up.
 
-Always correct in ${env.NATIVE_LANG}.
-Use Markdown formatting for corrections. Highlight corrections in bold (**text**).
+Use Markdown formatting for corrections. Use lists and newlines to split your correction into sections. Make it easy and fun to read.
 Address the user by the first name provided to you.
 
 Additional instructions:
@@ -22,13 +21,13 @@ ${extraBlock}
 Return ONLY valid JSON with this exact shape:
 {
   "decision":"NO_ISSUES" | "CORRECTION",
-  "correction":{
-    "message": "string"
-    }
-  }
+  "correction":"string"
+}
 
-Omit null fields.
-Write your response in ${env.NATIVE_LANG}.
+Omit null fields and include "correction" only when the decision is "CORRECTION".
+Highlight corrected words in bold and highlight corrected phrases as monospaced text (\`\`).
+Split it into SECTIONS.
+Write your correction in ${env.NATIVE_LANG}.
 `.trim();
 }
 

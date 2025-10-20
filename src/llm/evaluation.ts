@@ -1,12 +1,8 @@
 type LlmDecision = "NO_ISSUES" | "CORRECTION";
 
-interface LlmCorrectionPayload {
-  message: string;
-}
-
 interface LlmEvaluation {
   decision: LlmDecision;
-  correction?: LlmCorrectionPayload;
+  correction?: string;
 }
 
 const allowedDecisions = new Set<LlmDecision>([
@@ -72,26 +68,21 @@ function parseLlmEvaluation(raw: string): LlmEvaluation | null {
     return null;
   }
 
-  const evaluation: LlmEvaluation = { decision };
-
-  if (evaluation.decision === "CORRECTION") {
-    if (
-      !isPlainObject(parsed.correction) ||
-      !isNonEmptyString(parsed.correction.message)
-    ) {
+  if (decision === "CORRECTION") {
+    if (!isNonEmptyString(parsed.correction)) {
       return null;
     }
 
-    const message = parsed.correction.message.trim();
-    if (!message) {
+    const correction = parsed.correction.trim();
+    if (!correction) {
       return null;
     }
 
-    evaluation.correction = { message };
+    return { decision, correction };
   }
 
-  return evaluation;
+  return { decision };
 }
 
 export { parseLlmEvaluation };
-export type { LlmDecision, LlmCorrectionPayload, LlmEvaluation };
+export type { LlmDecision, LlmEvaluation };
