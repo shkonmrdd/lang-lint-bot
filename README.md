@@ -42,6 +42,8 @@ Example `.env` (SQLite):
 ```env
 TELEGRAM_API_KEY=123456789:ABC
 BOT_AUTH_CODE=letmein
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-example
 LLM_MODEL=gpt-4.1-mini
 DATABASE_PROVIDER=sqlite
 DATABASE_URL=file:./sqlite/lang_lint_bot.sqlite
@@ -51,6 +53,8 @@ Example `.env` (PostgreSQL):
 ```env
 TELEGRAM_API_KEY=123456789:ABC
 BOT_AUTH_CODE=letmein
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-example
 LLM_MODEL=gpt-4.1-mini
 DATABASE_PROVIDER=postgres
 DATABASE_URL=postgresql://langlint:secret@db.example.com:5432/lang_lint_bot
@@ -64,15 +68,17 @@ Copy the existing `.env` file or create a new one and provide the variables belo
 | `TELEGRAM_API_KEY` | Yes | – | Telegram Bot API token. |
 | `BOT_AUTH_CODE` | Yes | `null` | Shared code users must send to unlock the bot. Leaving it empty allows anyone to use the bot. |
 | `LLM_MODEL` | Yes | – | Model identifier passed to the LLM SDK (e.g. `gpt-5-mini`). |
-| `LLM_PROVIDER` | Yes | – | Provider key (e.g. `openai`). Also used to derive `<PROVIDER>_API_KEY`. |
+| `LLM_PROVIDER` | Yes | – | Provider key (currently only `openai`). |
 | `TARGET_LANG` | - | `English` | Target language for corrections. |
 | `NATIVE_LANG` | - | `Spanish` | Used for additional context in prompts. |
 | `MARK_AS_REPLY` | - | `false` | Set to `true` to respond as a threaded reply. |
-| `LLM_BASE_URL` | - | `null` | Override the base URL for custom endpoints. |
-| `LLM_API_KEY` | - | `null` | API key used if provider-specific key or `OPENAI_API_KEY` is missing. |
-| `OPENAI_API_KEY` | - | `null` | Checked when `LLM_PROVIDER` is omitted; keeps OpenAI as a convenient default. |
+| `LLM_BASE_URL` | - | `null` | Override the base URL for OpenAI-compatible endpoints while keeping `LLM_PROVIDER=openai`. |
+| `LLM_API_KEY` | Yes | – | Universal API key for the configured LLM provider. |
 | `DATABASE_URL` | - | `null` | Connection string for persistent auth storage. |
 | `DATABASE_PROVIDER` | - | `null` | Use `postgres` or `sqlite`. Required when `DATABASE_URL` is set. |
+
+### OpenAI-Compatible Endpoints
+This bot currently targets OpenAI's API surface area. To use an OpenAI-compatible service (such as a proxy or self-hosted gateway), keep `LLM_PROVIDER=openai` and supply the gateway URL with `LLM_BASE_URL`. Requests will still be signed with `LLM_API_KEY`, so ensure the value matches the key expected by your compatible service.
 
 ### Storage Options
 | Mode | `DATABASE_PROVIDER` value | `DATABASE_URL` example | Notes |
@@ -90,4 +96,5 @@ PostgreSQL and SQLite drivers ship with the project, so no extra packages are re
 
 ## Troubleshooting
 - Missing or invalid env vars cause the process to exit early. Double-check `.env`.
+- If `LLM_API_KEY` is blank, the startup validation fails immediately; ensure your OpenAI (or compatible) key is present.
 - If TypeORM fails to connect, ensure the database URL is reachable and the specified provider matches your driver.
