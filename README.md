@@ -66,16 +66,16 @@ Copy the existing `.env` file or create a new one and provide the variables belo
 | Variable | Required? | Default | Notes |
 | --- | --- | --- | --- |
 | `TELEGRAM_API_KEY` | Yes | - | Telegram Bot API token. |
-| `BOT_AUTH_CODE` | Yes | `null` | Shared code users must send to unlock the bot. Leaving it empty allows anyone to use the bot. |
-| `LLM_MODEL` | Yes | - | Model identifier passed to the LLM SDK (e.g. `gpt-5-mini`). |
+| `LLM_API_KEY` | Yes | - | Universal API key for the configured LLM provider. |
 | `LLM_PROVIDER` | Yes | - | Provider key (currently only `openai`). |
+| `LLM_MODEL` | Yes | - | Model identifier passed to the LLM SDK (e.g. `gpt-5-mini`). |
+| `BOT_AUTH_CODE` | Advised | - | Shared code users send to unlock the bot; setting one prevents anonymous use. |
 | `TARGET_LANG` | - | `English` | Target language for corrections. |
 | `NATIVE_LANG` | - | `Spanish` | Used for additional context in prompts. |
 | `MARK_AS_REPLY` | - | `false` | Set to `true` to respond as a threaded reply. |
-| `LLM_BASE_URL` | - | `null` | Override the base URL for OpenAI-compatible endpoints while keeping `LLM_PROVIDER=openai`. |
-| `LLM_API_KEY` | Yes | - | Universal API key for the configured LLM provider. |
-| `DATABASE_URL` | - | `null` | Connection string for persistent auth storage. |
-| `DATABASE_PROVIDER` | - | `null` | Use `postgres` or `sqlite`. Required when `DATABASE_URL` is set. |
+| `LLM_BASE_URL` | - | - | Override the base URL for OpenAI-compatible endpoints while keeping `LLM_PROVIDER=openai`. |
+| `DATABASE_URL` | - | - | Connection string for persistent auth storage. |
+| `DATABASE_PROVIDER` | - | - | Use `postgres` or `sqlite`. Required when `DATABASE_URL` is set. |
 
 ### OpenAI-Compatible Endpoints
 This bot currently targets OpenAI's API surface area. To use an OpenAI-compatible service (such as a proxy or self-hosted gateway), keep `LLM_PROVIDER=openai` and supply the gateway URL with `LLM_BASE_URL`. Requests will still be signed with `LLM_API_KEY`, so ensure the value matches the key expected by your compatible service.
