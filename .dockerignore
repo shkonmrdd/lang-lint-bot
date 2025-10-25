@@ -1,0 +1,7 @@
+node_modules
+.env
+.git
+docs
+sqlite
+*.log
+README.md
