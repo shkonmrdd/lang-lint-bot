@@ -8,7 +8,12 @@ import { resolveAuth } from "./bot/auth";
 import { resolveLanguageModel } from "./llm/modelFactory";
 
 const bootstrap = async () => {
-  const { model, providerLabel, baseUrl } = resolveLanguageModel();
+  const { model, providerLabel, baseUrl } = resolveLanguageModel({
+    modelId: env.LLM_MODEL,
+    provider: env.LLM_PROVIDER,
+    baseUrl: env.LLM_BASE_URL,
+    apiKey: env.LLM_API_KEY,
+  });
 
   const authStorage = await resolveAuthStorage({
     url: env.DATABASE_URL,
