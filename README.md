@@ -27,6 +27,38 @@ bun run dev
 
 Once the bot prints “Bot is up and running…”, open Telegram and message it.
 
+## Run with Docker
+```bash
+# build the image (run from repository root)
+docker build -t lang-lint-bot .
+
+# start the bot (loads config from .env)
+docker run --rm --env-file .env lang-lint-bot
+```
+
+Quick reference:
+- In-memory (default): leave `DATABASE_URL` unset.
+- SQLite: set `DATABASE_PROVIDER=sqlite` and `DATABASE_URL=file:./sqlite/lang_lint_bot.sqlite`.
+- PostgreSQL: set `DATABASE_PROVIDER=postgres` and provide a full URL such as `postgresql://user:pass@host:5432/lang_lint_bot`. Connecting to a database on the host machine? Use `host.docker.internal` in place of `localhost`.
+
+Example `.env` (SQLite):
+```env
+TELERGRAM_API_KEY=123456789:ABC
+BOT_AUTH_CODE=letmein
+LLM_MODEL=gpt-4.1-mini
+DATABASE_PROVIDER=sqlite
+DATABASE_URL=file:./sqlite/lang_lint_bot.sqlite
+```
+
+Example `.env` (PostgreSQL):
+```env
+TELERGRAM_API_KEY=123456789:ABC
+BOT_AUTH_CODE=letmein
+LLM_MODEL=gpt-4.1-mini
+DATABASE_PROVIDER=postgres
+DATABASE_URL=postgresql://langlint:secret@db.example.com:5432/lang_lint_bot
+```
+
 ## Configure Environment
 Copy the existing `.env` file or create a new one and provide the variables below. The bot requires both an LLM provider and model name so it knows which backend to call for grammar suggestions.
 
@@ -62,30 +94,6 @@ Copy the existing `.env` file or create a new one and provide the variables belo
 | `mysql` | `mysql2` | ➖ | |
 
 Install any missing driver with `bun add <package>` and follow the [TypeORM driver guides](https://typeorm.io/docs/drivers/sqlite) for provider-specific configuration tips.
-
-#### Example: PostgreSQL `.env`
-```env
-TELERGRAM_API_KEY=123456789:abc
-BOT_AUTH_CODE=letmein
-TARGET_LANG=Spanish
-NATIVE_LANG=English
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-5-mini
-DATABASE_PROVIDER=postgres
-DATABASE_URL=postgresql://lang-lint-bot:secret@localhost:5432/lang_lint_bot
-```
-
-#### Example: SQLite `.env`
-```env
-TELERGRAM_API_KEY=123456789:abc
-BOT_AUTH_CODE=letmein
-TARGET_LANG=Spanish
-NATIVE_LANG=English
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-5-mini
-DATABASE_PROVIDER=sqlite
-DATABASE_URL=file:./lang-lint-bot.sqlite
-```
 
 ## Bot Workflow
 1. Send `/activate <BOT_AUTH_CODE>` in a chat to authorize it.

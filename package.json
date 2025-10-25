@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "dev": "bun --watch src/index.ts"
+    "dev": "bun --watch src/index.ts",
+    "start": "bun run src/index.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.52",
