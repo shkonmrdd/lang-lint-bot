@@ -3,19 +3,24 @@ import type { LanguageModel } from "ai";
 import { generateText } from "ai";
 
 import { clearReactions } from "../../utils/messages";
-import { buildEvaluationSystemPrompt, buildEvaluationUserMessage } from "../../llm/prompts";
+import {
+  buildEvaluationSystemPrompt,
+  buildEvaluationUserMessage,
+  type EvaluationPromptConfig,
+} from "../../llm/prompts";
 import { parseLlmEvaluation } from "../../llm/evaluation";
 
 interface RegisterHandlerOptions {
   markAsReply?: boolean;
+  prompt: EvaluationPromptConfig;
 }
 
 function registerTextMessageHandler(
   bot: Bot<Context>,
   model: LanguageModel,
-  options: RegisterHandlerOptions = {},
+  options: RegisterHandlerOptions,
 ): void {
-  const { markAsReply = false } = options;
+  const { markAsReply = false, prompt } = options;
 
   bot.on("message:text", async (ctx) => {
     console.log("Received message", {
@@ -35,7 +40,7 @@ function registerTextMessageHandler(
       const { text: rawResponse } = await generateText({
         model,
         messages: [
-          { role: "system", content: buildEvaluationSystemPrompt() },
+          { role: "system", content: buildEvaluationSystemPrompt(prompt) },
           {
             role: "user",
             content: buildEvaluationUserMessage(userName, messageText),

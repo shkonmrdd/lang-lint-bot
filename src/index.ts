@@ -32,6 +32,11 @@ const bootstrap = async () => {
   registerActivateCommandHandler(bot, auth);
   registerTextMessageHandler(bot, model, {
     markAsReply: env.MARK_AS_REPLY,
+    prompt: {
+      grammarTargetLanguage: env.GRAMMAR_TARGET_LANGUAGE,
+      botUiLanguage: env.BOT_UI_LANGUAGE,
+      extraInstructions: env.LLM_PROMPT,
+    },
   });
 
   console.log(`LLM Model: ${env.LLM_MODEL}`);

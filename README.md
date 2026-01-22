@@ -70,8 +70,8 @@ Copy the existing `.env` file or create a new one and provide the variables belo
 | `LLM_PROVIDER` | Yes | - | Provider key (currently only `openai`). |
 | `LLM_MODEL` | Yes | - | Model identifier passed to the LLM SDK (e.g. `gpt-5-mini`). |
 | `BOT_AUTH_CODE` | Advised | - | Shared code users send to unlock the bot; setting one prevents anonymous use. |
-| `TARGET_LANG` | - | `English` | Target language for corrections. |
-| `NATIVE_LANG` | - | `Spanish` | Used for additional context in prompts. |
+| `GRAMMAR_TARGET_LANGUAGE` | - | `- (any)` | If set, only messages in this language are corrected; leave blank to check every language. |
+| `BOT_UI_LANGUAGE` | - | `English` | Language used for corrections and other bot responses. |
 | `MARK_AS_REPLY` | - | `false` | Set to `true` to respond as a threaded reply. |
 | `LLM_BASE_URL` | - | - | Override the base URL for OpenAI-compatible endpoints while keeping `LLM_PROVIDER=openai`. |
 | `DATABASE_URL` | - | - | Connection string for persistent auth storage. |

@@ -4,11 +4,22 @@ import chalk from "chalk";
 const SUPPORTED_LLM_PROVIDERS = ["openai"] as const;
 type SupportedLlmProvider = (typeof SUPPORTED_LLM_PROVIDERS)[number];
 
+const asBool = (value?: string) => {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === "true";
+};
+
+const trimOrUndefined = (value?: string | null) => {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : undefined;
+};
+
 const EnvSchema = z
   .object({
     TELERGRAM_API_KEY: z.string().min(1),
-    TARGET_LANG: z.string().optional(),
-    NATIVE_LANG: z.string().optional(),
+    GRAMMAR_TARGET_LANGUAGE: z.string().optional(),
+    BOT_UI_LANGUAGE: z.string().optional(),
     MARK_AS_REPLY: z.string().optional(),
     LLM_MODEL: z.string().optional(),
     LLM_PROVIDER: z
@@ -33,22 +44,14 @@ const EnvSchema = z
 
 const parsed = EnvSchema.parse(process.env);
 
-const asBool = (value?: string) => {
-  if (!value) return false;
-  const normalized = value.trim().toLowerCase();
-  return normalized === "true";
-};
-
-const trimOrUndefined = (value?: string | null) => {
-  const trimmed = value?.trim();
-  return trimmed && trimmed.length > 0 ? trimmed : undefined;
-};
-
 const rawProvider = parsed.LLM_PROVIDER as SupportedLlmProvider;
+const grammarTargetLanguage = trimOrUndefined(parsed.GRAMMAR_TARGET_LANGUAGE);
+const botUiLanguage = trimOrUndefined(parsed.BOT_UI_LANGUAGE) ?? "English";
+
 const env = {
   TELERGRAM_API_KEY: parsed.TELERGRAM_API_KEY.trim(),
-  TARGET_LANG: trimOrUndefined(parsed.TARGET_LANG) ?? "English",
-  NATIVE_LANG: trimOrUndefined(parsed.NATIVE_LANG) ?? "Spanish",
+  GRAMMAR_TARGET_LANGUAGE: grammarTargetLanguage ?? null,
+  BOT_UI_LANGUAGE: botUiLanguage,
   MARK_AS_REPLY: asBool(parsed.MARK_AS_REPLY),
   LLM_MODEL: trimOrUndefined(parsed.LLM_MODEL) ?? "gpt-5-mini",
   LLM_PROVIDER: rawProvider,
