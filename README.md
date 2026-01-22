@@ -36,6 +36,13 @@ docker build -t lang-lint-bot .
 docker run --rm --env-file .env lang-lint-bot
 ```
 
+## GitHub Container Registry
+The CI workflow publishes images to `ghcr.io/<owner>/<repo>` when you push to `main` or create a version tag (e.g. `v1.2.3`).
+
+```bash
+docker pull ghcr.io/<owner>/<repo>:latest
+```
+
 Need persistent storage? Check the storage table below for the right `DATABASE_*` values before you boot the container. Connecting to a database on the host machine? Use `host.docker.internal` instead of `localhost`.
 
 Example `.env` (SQLite):
